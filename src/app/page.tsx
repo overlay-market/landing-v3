@@ -73,7 +73,7 @@ export default function Home() {
           <div className="hidden md:flex gap-5 lg:gap-8">
             {navItems.map((item) => (
               <a
-                className="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-200 whitespace-nowrap"
+                className="font-label-caps text-[12px] font-semibold leading-none tracking-[0.08em] text-on-surface-variant hover:text-primary transition-colors duration-200 whitespace-nowrap"
                 href={item.href}
                 key={item.label}
                 {...externalLinkProps}
@@ -153,13 +153,18 @@ export default function Home() {
                       <span className="font-label-caps text-[10px] text-on-surface-variant block mb-2 tracking-widest">
                         ASSET
                       </span>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                      <div className="flex flex-col items-start gap-3">
                         <span className="font-data-lg text-xl md:text-2xl text-primary break-words">
                           $EMERGING-ASSET
                         </span>
-                        <span className="w-fit px-1.5 py-0.5 border border-primary/30 text-[8px] font-label-caps text-primary rounded bg-primary/5 uppercase">
-                          Thin Liquidity
-                        </span>
+                        <div className="flex max-w-full items-center gap-2 rounded-lg border border-error/30 bg-error/10 px-3 py-1.5 shadow-[0_0_15px_rgba(255,180,171,0.1)] backdrop-blur-md">
+                          <span className="material-symbols-outlined shrink-0 text-sm text-error animate-pulse">
+                            warning
+                          </span>
+                          <span className="min-w-0 font-data-md text-[10px] font-semibold uppercase leading-tight tracking-wider text-error">
+                            STATUS: Thin liquidity asset perp open for trading
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <div>
@@ -182,7 +187,7 @@ export default function Home() {
                     </div>
                     <div>
                       <span className="font-label-caps text-[10px] text-on-surface-variant block mb-2 tracking-widest">
-                        24H VOL
+                        VOLUME
                       </span>
                       <span className="font-data-lg text-xl md:text-2xl text-secondary">
                         300M+
