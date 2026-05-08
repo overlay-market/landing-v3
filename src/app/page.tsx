@@ -147,7 +147,7 @@ export default function Home() {
                     OVL // TERMINAL_V2
                   </span>
                 </div>
-                <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 min-h-[420px] sm:h-[340px] overflow-hidden bg-[url('https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&q=80&w=800')] bg-cover bg-center rounded-b-lg">
+                <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 min-h-[420px] sm:min-h-0 sm:h-[340px] overflow-hidden bg-[url('https://images.unsplash.com/photo-1642790106117-e829e14a795f?auto=format&fit=crop&q=80&w=800')] bg-cover bg-center rounded-b-lg">
                   <div className="min-w-0 bg-background/90 backdrop-blur-sm p-5 border border-outline-variant/50 rounded-lg flex flex-col justify-between">
                     <div>
                       <span className="font-label-caps text-[10px] text-on-surface-variant block mb-2 tracking-widest">
