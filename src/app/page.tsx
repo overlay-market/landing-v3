@@ -73,7 +73,7 @@ export default function Home() {
           <div className="hidden md:flex gap-5 lg:gap-8">
             {navItems.map((item) => (
               <a
-                className="font-label-caps text-[12px] font-semibold leading-none tracking-[0.08em] text-on-surface-variant hover:text-primary transition-colors duration-200 whitespace-nowrap"
+                className="font-label-caps text-sm font-semibold leading-none tracking-[0.08em] text-on-surface-variant hover:text-primary transition-colors duration-200 whitespace-nowrap"
                 href={item.href}
                 key={item.label}
                 {...externalLinkProps}
