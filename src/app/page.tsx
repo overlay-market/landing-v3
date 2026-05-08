@@ -1,3 +1,5 @@
+import { HashRouteGate } from "@/components/hash-route-gate"
+
 const LINKS = {
   documentation: "https://docs.overlay.market/",
   whitepaperV1: "https://redrct.overlay.market/whitepaper",
@@ -62,7 +64,7 @@ const auditors = [
 
 export default function Home() {
   return (
-    <>
+    <HashRouteGate>
       <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between gap-4 px-5 sm:px-6 py-4 bg-background/90 backdrop-blur-xl border-b border-outline-variant/30">
         <div className="flex items-center gap-6 lg:gap-8 min-w-0">
           <span className="font-headline-md text-2xl font-bold tracking-tighter text-primary">
@@ -404,6 +406,6 @@ export default function Home() {
           ))}
         </div>
       </footer>
-    </>
+    </HashRouteGate>
   )
 }
