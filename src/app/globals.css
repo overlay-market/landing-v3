@@ -182,6 +182,7 @@ body {
   height: 2px;
   background-color: rgba(0, 240, 255, 0.1);
   animation: scan 4s linear infinite;
+  pointer-events: none;
 }
 
 @keyframes scan {

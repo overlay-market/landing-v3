@@ -127,7 +127,19 @@ export default function Home() {
               <div className="bg-surface-container-low border border-outline-variant/50 rounded-xl p-1 shadow-2xl relative scanline-effect backdrop-blur-md">
                 <div className="bg-surface-container-highest rounded-t-lg flex items-center justify-between gap-4 p-3 border-b border-outline-variant/50">
                   <div className="flex gap-2.5">
-                    <div className="w-3 h-3 rounded-full bg-error" />
+                    <button
+                      aria-label="Close terminal"
+                      className="group/close relative h-3 w-3 cursor-help appearance-none rounded-full border-0 bg-error p-0"
+                      title="Nice try, but liquidity never sleeps."
+                      type="button"
+                    >
+                      <span className="pointer-events-none absolute left-0 top-full z-50 mt-2 w-48 rounded border border-error/50 bg-surface-container-high p-2 text-left opacity-0 shadow-xl transition-opacity duration-200 group-hover/close:opacity-100 group-focus/close:opacity-100 group-focus-visible/close:opacity-100">
+                        <span className="font-data-md text-[10px] leading-tight text-error uppercase">
+                          Error 403: Access Denied.
+                          <br /> You&apos;re here forever.
+                        </span>
+                      </span>
+                    </button>
                     <div className="w-3 h-3 rounded-full bg-secondary-container" />
                     <div className="w-3 h-3 rounded-full bg-surface-container-highest border border-outline-variant" />
                   </div>
@@ -390,7 +402,7 @@ export default function Home() {
             OVERLAY
           </span>
           <p className="font-body-md text-sm text-on-surface-variant">
-            © 2024 OVERLAY PROTOCOL. HIGH-STAKES TRADING INVOLVES RISK.
+            HIGH-STAKES TRADING INVOLVES RISK.
           </p>
         </div>
         <div className="flex max-w-4xl flex-wrap justify-center md:justify-end gap-x-6 gap-y-4">
