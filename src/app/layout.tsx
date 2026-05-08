@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   title: "Overlay Protocol - Perps for the Long Tail",
   description:
     "Access perpetual markets for emerging tokens, pre-CEX assets, and narrative-driven assets that traditional venues can't support.",
+  icons: {
+    icon: "/Overlay-logo.jpg",
+    apple: "/Overlay-logo.jpg",
+  },
 }
 
 export default function RootLayout({
