@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
+import { GoogleAnalytics } from "@next/third-parties/google"
 import { Inter } from "next/font/google"
+import Script from "next/script"
 import "./globals.css"
 
 /* eslint-disable @next/next/no-page-custom-font */
@@ -10,6 +12,8 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
   display: "swap",
 })
+
+const GA_MEASUREMENT_ID = "G-QJR084KXFT"
 
 export const metadata: Metadata = {
   title: "Overlay Protocol - Perps for the Long Tail",
@@ -37,6 +41,16 @@ export default function RootLayout({
       <body className="bg-background text-on-background font-body-md text-body-md antialiased overflow-x-hidden selection:bg-primary selection:text-on-primary">
         {children}
       </body>
+      <Script id="overlay-ga-optout" strategy="beforeInteractive">
+        {`
+          var gaProperty = '${GA_MEASUREMENT_ID}';
+          var disableStr = 'ga-disable-' + gaProperty;
+          if (document.cookie.indexOf(disableStr + '=true') > -1) {
+            window[disableStr] = true;
+          }
+        `}
+      </Script>
+      <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
     </html>
   )
 }

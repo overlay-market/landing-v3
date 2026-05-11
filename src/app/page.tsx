@@ -25,7 +25,6 @@ const navItems = [
 
 const footerLinks = [
   { label: "Markets", href: LINKS.markets },
-  { label: "Trade", href: LINKS.trade },
   { label: "Docs", href: LINKS.documentation },
   { label: "Listing Application", href: LINKS.listingApplication },
   { label: "Whitepaper", href: LINKS.whitepaperV1 },
