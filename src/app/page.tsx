@@ -19,7 +19,6 @@ const externalLinkProps = {
 
 const navItems = [
   { label: "Markets", href: LINKS.markets },
-  { label: "Trade", href: LINKS.trade },
   { label: "Docs", href: LINKS.documentation },
   { label: "Listing Application", href: LINKS.listingApplication },
 ]
