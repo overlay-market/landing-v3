@@ -9,6 +9,7 @@ const LINKS = {
   telegram: "https://t.me/overlay_protocol",
   listingApplication: "https://forms.gle/aWcpf49GaoVPMomg7",
   markets: "https://app.overlay.market",
+  communityPools: "https://app.overlay.market/community-pools",
   trade: "https://app.overlay.market/trade",
 } as const
 
@@ -19,12 +20,14 @@ const externalLinkProps = {
 
 const navItems = [
   { label: "Markets", href: LINKS.markets },
+  { label: "Community Pools", href: LINKS.communityPools },
   { label: "Docs", href: LINKS.documentation },
   { label: "Listing Application", href: LINKS.listingApplication },
 ]
 
 const footerLinks = [
   { label: "Markets", href: LINKS.markets },
+  { label: "Community Pools", href: LINKS.communityPools },
   { label: "Docs", href: LINKS.documentation },
   { label: "Listing Application", href: LINKS.listingApplication },
   { label: "Whitepaper", href: LINKS.whitepaperV1 },
