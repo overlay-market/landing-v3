@@ -50,16 +50,16 @@
   --color-on-tertiary: #213145;
   --color-surface-container: #201f1f;
   --color-on-tertiary-fixed-variant: #38485d;
-  --font-label-caps: workSans, serif;
+  --font-label-caps: var(--font-inter);
   --font-body-md: var(--font-inter);
   --font-headline-md: var(--font-inter);
   --font-headline-xl: var(--font-inter);
   --font-data-md: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-data-lg: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --text-label-caps: 11px;
+  --text-label-caps: 12px;
   --text-label-caps--line-height: 1;
-  --text-label-caps--letter-spacing: 0.08em;
-  --text-label-caps--font-weight: 600;
+  --text-label-caps--letter-spacing: 0.1em;
+  --text-label-caps--font-weight: 500;
   --text-body-md: 14px;
   --text-body-md--line-height: 1.6;
   --text-body-md--letter-spacing: 0em;
@@ -156,7 +156,7 @@
   --border: var(--outline-variant);
   --input: var(--outline-variant);
   --ring: var(--primary-fixed-dim);
-  --font-label-caps: workSans, serif;
+  --font-label-caps: var(--font-inter);
 }
 
 body {
