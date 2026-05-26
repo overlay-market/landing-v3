@@ -68,13 +68,13 @@ export default function Home() {
     <HashRouteGate>
       <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between gap-4 px-5 sm:px-6 py-4 bg-background/90 backdrop-blur-xl border-b border-outline-variant/30">
         <div className="flex items-center gap-6 lg:gap-8 min-w-0">
-          <span className="font-headline-md text-2xl font-bold tracking-tighter text-primary">
+          <span className="font-headline-md text-2xl font-semibold tracking-[-0.03em] text-primary">
             OVERLAY
           </span>
           <div className="hidden md:flex gap-5 lg:gap-8">
             {navItems.map((item) => (
               <a
-                className="font-label-caps text-sm font-semibold leading-none tracking-[0.08em] text-on-surface-variant hover:text-primary transition-colors duration-200 whitespace-nowrap"
+                className="font-label-caps text-[0.78rem] font-medium leading-none tracking-[0.1em] text-on-surface-variant/95 hover:text-primary transition-colors duration-200 whitespace-nowrap"
                 href={item.href}
                 key={item.label}
                 {...externalLinkProps}
@@ -86,7 +86,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-6">
           <a
-            className="inline-flex shrink-0 items-center justify-center bg-primary text-on-primary font-label-caps text-label-caps px-4 sm:px-5 py-2.5 rounded uppercase tracking-wider hover:bg-primary-container transition-colors duration-200"
+            className="inline-flex shrink-0 items-center justify-center bg-primary text-on-primary font-label-caps text-label-caps font-medium px-4 sm:px-5 py-2.5 rounded uppercase tracking-[0.11em] hover:bg-primary-container transition-colors duration-200"
             href={LINKS.launchApp}
             {...externalLinkProps}
           >
@@ -109,14 +109,14 @@ export default function Home() {
               </p>
               <div className="flex flex-wrap gap-4 pt-2 md:pt-4">
                 <a
-                  className="inline-flex items-center justify-center bg-secondary text-background font-label-caps text-label-caps px-6 py-3.5 rounded uppercase tracking-wider hover:bg-on-background transition-colors duration-200"
+                  className="inline-flex items-center justify-center bg-secondary text-background font-label-caps text-label-caps font-medium px-6 py-3.5 rounded uppercase tracking-[0.11em] hover:bg-on-background transition-colors duration-200"
                   href={LINKS.launchApp}
                   {...externalLinkProps}
                 >
                   Launch App
                 </a>
                 <a
-                  className="inline-flex items-center justify-center bg-transparent border border-primary/40 text-primary font-label-caps text-label-caps px-6 py-3.5 rounded uppercase tracking-wider hover:bg-primary/10 transition-all duration-200 shadow-[0_0_15px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
+                  className="inline-flex items-center justify-center bg-transparent border border-primary/40 text-primary font-label-caps text-label-caps font-medium px-6 py-3.5 rounded uppercase tracking-[0.11em] hover:bg-primary/10 transition-all duration-200 shadow-[0_0_15px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
                   href={LINKS.listingApplication}
                   {...externalLinkProps}
                 >
