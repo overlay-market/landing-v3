@@ -1,99 +1,17 @@
 import { HashRouteGate } from "@/components/hash-route-gate"
-
-const LINKS = {
-  documentation: "https://docs.overlay.market/",
-  whitepaperV1: "https://redrct.overlay.market/whitepaper",
-  discord: "https://redrct.overlay.market/discord",
-  twitter: "https://twitter.com/OverlayProtocol",
-  launchApp: "https://app.overlay.market",
-  telegram: "https://t.me/overlay_protocol",
-  listingApplication: "https://forms.gle/aWcpf49GaoVPMomg7",
-  markets: "https://app.overlay.market",
-  communityPools: "https://app.overlay.market/community-pools",
-  trade: "https://app.overlay.market/trade",
-} as const
-
-const externalLinkProps = {
-  rel: "noopener noreferrer",
-  target: "_blank",
-}
-
-const navItems = [
-  { label: "Markets", href: LINKS.markets },
-  { label: "Community Pools", href: LINKS.communityPools },
-  { label: "Docs", href: LINKS.documentation },
-  { label: "Listing Application", href: LINKS.listingApplication },
-]
-
-const footerLinks = [
-  { label: "Markets", href: LINKS.markets },
-  { label: "Community Pools", href: LINKS.communityPools },
-  { label: "Docs", href: LINKS.documentation },
-  { label: "Listing Application", href: LINKS.listingApplication },
-  { label: "Whitepaper", href: LINKS.whitepaperV1 },
-  { label: "Twitter", href: LINKS.twitter },
-  { label: "Telegram", href: LINKS.telegram },
-  { label: "Discord", href: LINKS.discord },
-]
-
-const auditors = [
-  {
-    name: "Spearbit DAO",
-    completedAuditHref:
-      "https://github.com/overlay-market/v1-core/blob/main/audits/spearbit/audit.pdf",
-    externalLinkText: "Spearbit DAO Audit",
-  },
-  {
-    name: "Least Authority",
-    completedAuditHref:
-      "https://github.com/overlay-market/v1-core/blob/main/audits/leastauthority/audit.pdf",
-    externalLinkText: "Least Authority Audit",
-  },
-  {
-    name: "Trail of Bits",
-    completedAuditHref:
-      "https://github.com/overlay-market/v1-core/blob/main/audits/trailofbits/audit.pdf",
-    externalLinkText: "Trail of Bits Audit",
-  },
-  {
-    name: "Nethermind",
-    completedAuditHref:
-      "https://github.com/overlay-market/v1-shiva/blob/main/audits/nethermind/audit.pdf",
-    externalLinkText: "Nethermind Audit",
-  },
-]
+import {
+  LINKS,
+  MarketingFooter,
+  MarketingNav,
+  auditors,
+  backers,
+  externalLinkProps,
+} from "@/components/marketing/marketing-chrome"
 
 export default function Home() {
   return (
     <HashRouteGate>
-      <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between gap-4 px-5 sm:px-6 py-4 bg-background/90 backdrop-blur-xl border-b border-outline-variant/30">
-        <div className="flex items-center gap-6 lg:gap-8 min-w-0">
-          <span className="font-headline-md text-2xl font-semibold tracking-[-0.03em] text-primary">
-            OVERLAY
-          </span>
-          <div className="hidden md:flex gap-5 lg:gap-8">
-            {navItems.map((item) => (
-              <a
-                className="font-label-caps text-[0.78rem] font-medium leading-none tracking-[0.1em] text-on-surface-variant/95 hover:text-primary transition-colors duration-200 whitespace-nowrap"
-                href={item.href}
-                key={item.label}
-                {...externalLinkProps}
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-6">
-          <a
-            className="inline-flex shrink-0 items-center justify-center bg-primary text-on-primary font-label-caps text-label-caps font-medium px-4 sm:px-5 py-2.5 rounded uppercase tracking-[0.11em] hover:bg-primary-container transition-colors duration-200"
-            href={LINKS.launchApp}
-            {...externalLinkProps}
-          >
-            Launch App
-          </a>
-        </div>
-      </nav>
+      <MarketingNav />
       <main className="pt-24 md:pt-32 pb-16 md:pb-24">
         {/* 1. Terminal Hero */}
         <section className="max-w-container-max mx-auto px-6 pt-16 pb-14 md:py-24 relative overflow-hidden">
@@ -307,26 +225,16 @@ export default function Home() {
                 Backed By
               </span>
               <div className="grid w-full max-w-5xl grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10 items-center opacity-70 hover:opacity-100 transition-opacity duration-500 mx-auto">
-                <div className="flex flex-col items-center justify-center grayscale contrast-125">
-                  <span className="font-headline-md text-lg md:text-xl text-secondary font-bold tracking-tighter uppercase">
-                    POLYCHAIN
-                  </span>
-                </div>
-                <div className="flex flex-col items-center justify-center grayscale contrast-125">
-                  <span className="font-headline-md text-lg md:text-xl text-secondary font-bold tracking-tighter uppercase">
-                    ParaFi
-                  </span>
-                </div>
-                <div className="flex flex-col items-center justify-center grayscale contrast-125">
-                  <span className="font-headline-md text-lg md:text-xl text-secondary font-bold tracking-tighter uppercase">
-                    1KX
-                  </span>
-                </div>
-                <div className="flex flex-col items-center justify-center grayscale contrast-125">
-                  <span className="font-headline-md text-lg md:text-xl text-secondary font-bold tracking-tighter uppercase">
-                    FALCONX
-                  </span>
-                </div>
+                {backers.map((backer) => (
+                  <div
+                    className="flex flex-col items-center justify-center grayscale contrast-125"
+                    key={backer}
+                  >
+                    <span className="font-headline-md text-lg md:text-xl text-secondary font-bold tracking-tighter uppercase">
+                      {backer}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -402,28 +310,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="w-full py-10 md:py-12 px-6 flex flex-col md:flex-row justify-between items-center md:items-start gap-8 bg-surface-container-lowest border-t border-outline-variant/20">
-        <div className="text-center md:text-left">
-          <span className="font-headline-md text-xl font-bold text-on-surface block mb-3">
-            OVERLAY
-          </span>
-          <p className="font-body-md text-sm text-on-surface-variant">
-            HIGH-STAKES TRADING INVOLVES RISK.
-          </p>
-        </div>
-        <div className="flex max-w-4xl flex-wrap justify-center md:justify-end gap-x-6 gap-y-4">
-          {footerLinks.map((item) => (
-            <a
-              className="font-label-caps text-[11px] text-on-surface-variant hover:text-primary transition-colors duration-300 uppercase tracking-wider"
-              href={item.href}
-              key={item.label}
-              {...externalLinkProps}
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
-      </footer>
+      <MarketingFooter />
     </HashRouteGate>
   )
 }
