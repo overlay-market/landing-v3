@@ -22,13 +22,6 @@ const poolMetrics = [
   { label: "Minimum", value: "$0" },
 ]
 
-const marketFees = [
-  { market: "$ALT / USD", fees: "$142,091" },
-  { market: "$DASH / USD", fees: "$89,430" },
-  { market: "$CHZ / USD", fees: "$121,552" },
-  { market: "$ARB / USD", fees: "$64,221", muted: true },
-]
-
 const mechanismSteps = [
   {
     icon: "groups",
@@ -59,6 +52,18 @@ const roiStats = [
   { volume: "$100M Volume", roi: "300% monthly ROI" },
 ]
 
+const DATA_API_BASE_URL = "https://api.overlay.market/data/api"
+const AGGREGATOR_MARKETS_CHAIN_ID = "56"
+const BSC_SUBGRAPH_URL =
+  "https://api.goldsky.com/api/public/project_clyiptt06ifuv01ul9xiwfj28/subgraphs/overlay-bsc/prod/gn"
+const OVL_OHLCV_URL =
+  "https://api.geckoterminal.com/api/v2/networks/bsc/pools/0x927ae3c2cd88717a1525a55021af9612c3f04583/ohlcv/day"
+const MARKET_DATA_TIMEOUT_MS = 8000
+const MARKET_FEE_ROW_LIMIT = 4
+const MARKET_FEE_LOOKBACK_DAYS = 30
+const OVL_DECIMALS = 18
+const SUBGRAPH_PAGE_SIZE = 1000
+const SECONDS_PER_DAY = 24 * 60 * 60
 const BSC_RPC_URL = "https://bsc-dataseed.binance.org/"
 const BSC_USDT_CONTRACT = "0x55d398326f99059fF775485246999027B3197955"
 const BALANCE_OF_SELECTOR = "0x70a08231"
@@ -66,11 +71,485 @@ const USDT_DECIMALS = 18
 const FILL_TOLERANCE_USDT = 0.01
 const BSC_RPC_TIMEOUT_MS = 8000
 
+type AggregatorMarketConfig = {
+  baseCurrency?: string
+  enabled?: boolean
+  targetCurrency?: string
+  tickerId?: string
+}
+
+type MarketChain = {
+  aggregatorContract?: AggregatorMarketConfig
+  deploymentAddress?: string
+  deprecated?: boolean
+  disabled?: boolean
+}
+
+type DataApiMarket = {
+  chains?: MarketChain[]
+  marketName?: string
+}
+
+type MarketsByChainResponse = Record<string, DataApiMarket[] | undefined>
+
+type EnabledMarket = {
+  address: string
+  label: string
+  ticker: string
+}
+
+type FeeEventMarket = {
+  position?: {
+    market?: {
+      id?: string
+    }
+  }
+  timestamp?: string
+}
+
+type TradingFeeEvent = FeeEventMarket & {
+  feeAmount?: string
+}
+
+type LiquidationFeeEvent = FeeEventMarket & {
+  transferFeeAmount?: string
+}
+
+type MarketFeeEventsGraphqlResponse = {
+  data?: {
+    builds?: TradingFeeEvent[]
+    liquidates?: LiquidationFeeEvent[]
+    unwinds?: TradingFeeEvent[]
+  }
+  errors?: { message?: string }[]
+}
+
+type OvlOhlcvResponse = {
+  data?: {
+    attributes?: {
+      ohlcv_list?: [number, number, number, number, number, number][]
+    }
+  }
+}
+
+type MarketFeeRow = {
+  feesOvl: number
+  feesUsd: number
+  market: string
+  ticker: string
+}
+
 function formatUsdtAmount(amount: number) {
   return `${new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 2,
     minimumFractionDigits: Number.isInteger(amount) ? 0 : 2,
   }).format(amount)} USDT`
+}
+
+function formatUsdAmount(
+  amount: number,
+  options: { compact?: boolean; precise?: boolean } = {}
+) {
+  if (options.precise) {
+    return new Intl.NumberFormat("en-US", {
+      currency: "USD",
+      maximumFractionDigits: 6,
+      minimumFractionDigits: 4,
+      style: "currency",
+    }).format(amount)
+  }
+
+  return new Intl.NumberFormat("en-US", {
+    currency: "USD",
+    maximumFractionDigits: amount >= 100 ? 0 : 2,
+    minimumFractionDigits: amount >= 100 ? 0 : 2,
+    notation: options.compact ? "compact" : "standard",
+    style: "currency",
+  }).format(amount)
+}
+
+function formatCompactNumber(amount: number) {
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 2,
+    notation: "compact",
+  }).format(amount)
+}
+
+function formatUtcTime(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  }).format(date)
+}
+
+function normalizeMarketLabel(label: string) {
+  return label.replace(/\s*\/\s*/g, " / ")
+}
+
+type MarketFeeTotal = {
+  feesOvl: number
+  feesUsd: number
+}
+
+function parseBigIntUnits(rawAmount: bigint | string, decimals: number) {
+  const raw = typeof rawAmount === "bigint" ? rawAmount : BigInt(rawAmount)
+  const scale = BigInt(10) ** BigInt(decimals)
+  const whole = raw / scale
+  const fraction = raw % scale
+  const fractionPrecision = BigInt(1_000_000)
+
+  return (
+    Number(whole) +
+    Number((fraction * fractionPrecision) / scale) / Number(fractionPrecision)
+  )
+}
+
+function getUtcDayStart(timestamp: number) {
+  return Math.floor(timestamp / SECONDS_PER_DAY) * SECONDS_PER_DAY
+}
+
+async function fetchJson<T>(url: string, init?: RequestInit) {
+  const response = await fetch(url, {
+    ...init,
+    cache: "no-store",
+    signal: AbortSignal.timeout(MARKET_DATA_TIMEOUT_MS),
+  })
+
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`)
+  }
+
+  return (await response.json()) as T
+}
+
+async function getEnabledMarkets() {
+  const marketsByChain = await fetchJson<MarketsByChainResponse>(
+    `${DATA_API_BASE_URL}/markets`
+  )
+  const bscMarkets = marketsByChain[AGGREGATOR_MARKETS_CHAIN_ID]
+
+  if (!Array.isArray(bscMarkets)) {
+    throw new Error("Data API did not return BSC markets")
+  }
+
+  return bscMarkets.flatMap((market) => {
+    const marketName = market.marketName?.trim()
+
+    return (market.chains || [])
+      .filter((chain) => {
+        return (
+          chain.aggregatorContract?.enabled &&
+          !chain.disabled &&
+          !chain.deprecated &&
+          chain.deploymentAddress
+        )
+      })
+      .map((chain): EnabledMarket => {
+        const aggregator = chain.aggregatorContract
+        const label =
+          marketName ||
+          `${aggregator?.baseCurrency || "Market"} / ${
+            aggregator?.targetCurrency || "USD"
+          }`
+
+        return {
+          address: chain.deploymentAddress!.toLowerCase(),
+          label: normalizeMarketLabel(label),
+          ticker: aggregator?.tickerId || label,
+        }
+      })
+  })
+}
+
+async function fetchMarketFeeEventPage(
+  markets: EnabledMarket[],
+  fromTimestamp: number,
+  toTimestamp: number,
+  skip: number
+) {
+  const response = await fetchJson<MarketFeeEventsGraphqlResponse>(
+    BSC_SUBGRAPH_URL,
+    {
+      body: JSON.stringify({
+        query: `
+          query MarketFees30d(
+            $marketIds: [String!]!
+            $from: BigInt!
+            $to: BigInt!
+            $first: Int!
+            $skip: Int!
+          ) {
+            builds(
+              first: $first
+              skip: $skip
+              orderBy: timestamp
+              orderDirection: desc
+              where: {
+                timestamp_gte: $from
+                timestamp_lte: $to
+                position_: { market_in: $marketIds }
+              }
+            ) {
+              feeAmount
+              timestamp
+              position {
+                market {
+                  id
+                }
+              }
+            }
+            unwinds(
+              first: $first
+              skip: $skip
+              orderBy: timestamp
+              orderDirection: desc
+              where: {
+                timestamp_gte: $from
+                timestamp_lte: $to
+                position_: { market_in: $marketIds }
+              }
+            ) {
+              feeAmount
+              timestamp
+              position {
+                market {
+                  id
+                }
+              }
+            }
+            liquidates(
+              first: $first
+              skip: $skip
+              orderBy: timestamp
+              orderDirection: desc
+              where: {
+                timestamp_gte: $from
+                timestamp_lte: $to
+                position_: { market_in: $marketIds }
+              }
+            ) {
+              transferFeeAmount
+              timestamp
+              position {
+                market {
+                  id
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          first: SUBGRAPH_PAGE_SIZE,
+          from: String(fromTimestamp),
+          marketIds: markets.map((market) => market.address),
+          skip,
+          to: String(toTimestamp),
+        },
+      }),
+      headers: {
+        "content-type": "application/json",
+      },
+      method: "POST",
+    }
+  )
+
+  if (response.errors?.length) {
+    throw new Error(
+      response.errors.map((error) => error.message || "GraphQL error").join("; ")
+    )
+  }
+
+  const builds = response.data?.builds
+  const liquidates = response.data?.liquidates
+  const unwinds = response.data?.unwinds
+
+  if (
+    !Array.isArray(builds) ||
+    !Array.isArray(liquidates) ||
+    !Array.isArray(unwinds)
+  ) {
+    throw new Error("Subgraph did not return market fee events")
+  }
+
+  return {
+    builds,
+    liquidates,
+    unwinds,
+  }
+}
+
+async function getOvlUsdPricesByDay() {
+  const url = new URL(OVL_OHLCV_URL)
+  url.searchParams.set("aggregate", "1")
+  url.searchParams.set("limit", String(MARKET_FEE_LOOKBACK_DAYS + 2))
+  url.searchParams.set("currency", "usd")
+  url.searchParams.set("token", "base")
+
+  const response = await fetchJson<OvlOhlcvResponse>(url.toString(), {
+    headers: {
+      accept: "application/json",
+    },
+  })
+  const ohlcvList = response.data?.attributes?.ohlcv_list
+
+  if (!Array.isArray(ohlcvList)) {
+    throw new Error("OVL/USD price response was invalid")
+  }
+
+  const pricesByDay = new Map<number, number>()
+
+  for (const item of ohlcvList) {
+    const [timestamp, , high] = item
+
+    if (
+      typeof timestamp === "number" &&
+      typeof high === "number" &&
+      Number.isFinite(high) &&
+      high > 0
+    ) {
+      pricesByDay.set(getUtcDayStart(timestamp), high)
+    }
+  }
+
+  if (pricesByDay.size === 0) {
+    throw new Error("OVL/USD price response did not include usable prices")
+  }
+
+  return pricesByDay
+}
+
+function addFeeEventByDay(
+  feesByMarketByDay: Map<string, Map<number, bigint>>,
+  event: FeeEventMarket,
+  rawAmount?: string
+) {
+  if (!rawAmount || !event.timestamp) {
+    return
+  }
+
+  const marketId = event.position?.market?.id?.toLowerCase()
+  const timestamp = Number(event.timestamp)
+
+  if (!marketId || !Number.isFinite(timestamp)) {
+    return
+  }
+
+  const day = getUtcDayStart(timestamp)
+  const feesByDay = feesByMarketByDay.get(marketId) || new Map<number, bigint>()
+  feesByDay.set(day, (feesByDay.get(day) || BigInt(0)) + BigInt(rawAmount))
+  feesByMarketByDay.set(marketId, feesByDay)
+}
+
+async function getThirtyDayFeesByMarketByDay(markets: EnabledMarket[]) {
+  const toTimestamp = Math.floor(Date.now() / 1000)
+  const fromTimestamp =
+    toTimestamp - MARKET_FEE_LOOKBACK_DAYS * SECONDS_PER_DAY
+  const feesByMarketByDay = new Map<string, Map<number, bigint>>()
+  let skip = 0
+
+  while (true) {
+    const page = await fetchMarketFeeEventPage(
+      markets,
+      fromTimestamp,
+      toTimestamp,
+      skip
+    )
+
+    for (const event of page.builds) {
+      addFeeEventByDay(feesByMarketByDay, event, event.feeAmount)
+    }
+
+    for (const event of page.unwinds) {
+      addFeeEventByDay(feesByMarketByDay, event, event.feeAmount)
+    }
+
+    for (const event of page.liquidates) {
+      addFeeEventByDay(feesByMarketByDay, event, event.transferFeeAmount)
+    }
+
+    const pageSizes = [
+      page.builds.length,
+      page.liquidates.length,
+      page.unwinds.length,
+    ]
+
+    if (!pageSizes.some((pageSize) => pageSize === SUBGRAPH_PAGE_SIZE)) {
+      break
+    }
+
+    skip += SUBGRAPH_PAGE_SIZE
+  }
+
+  return feesByMarketByDay
+}
+
+async function getThirtyDayMarketFeesByAddress(markets: EnabledMarket[]) {
+  const [feesByMarketByDay, ovlUsdPricesByDay] = await Promise.all([
+    getThirtyDayFeesByMarketByDay(markets),
+    getOvlUsdPricesByDay(),
+  ])
+  const feesByAddress = new Map<string, MarketFeeTotal>()
+
+  for (const [marketId, feesByDay] of feesByMarketByDay) {
+    let feesOvl = 0
+    let feesUsd = 0
+
+    for (const [day, rawFees] of feesByDay) {
+      const ovlUsdPrice = ovlUsdPricesByDay.get(day)
+
+      if (ovlUsdPrice === undefined) {
+        throw new Error("Missing daily OVL/USD price")
+      }
+
+      const dailyFeesOvl = parseBigIntUnits(rawFees, OVL_DECIMALS)
+      feesOvl += dailyFeesOvl
+      feesUsd += dailyFeesOvl * ovlUsdPrice
+    }
+
+    feesByAddress.set(marketId, {
+      feesOvl,
+      feesUsd,
+    })
+  }
+
+  return feesByAddress
+}
+
+async function getMarketFeeRows() {
+  const markets = await getEnabledMarkets()
+  const feesByAddress = await getThirtyDayMarketFeesByAddress(markets)
+
+  const rows = markets
+    .map((market): MarketFeeRow | undefined => {
+      const fees = feesByAddress.get(market.address)
+
+      if (fees === undefined) {
+        return undefined
+      }
+
+      return {
+        feesOvl: fees.feesOvl,
+        feesUsd: fees.feesUsd,
+        market: market.label,
+        ticker: market.ticker,
+      }
+    })
+    .filter((row): row is MarketFeeRow => row !== undefined)
+    .sort((left, right) => right.feesUsd - left.feesUsd)
+
+  if (rows.length === 0) {
+    throw new Error("No market fees were returned")
+  }
+
+  const totalFeesUsd = rows.reduce((sum, row) => sum + row.feesUsd, 0)
+
+  return {
+    lastSyncedAt: new Date(),
+    rows: rows.slice(0, MARKET_FEE_ROW_LIMIT),
+    totalFeesUsd,
+  }
 }
 
 function getRemainingUsdt(funded: number, target: number) {
@@ -188,6 +667,140 @@ function SkeletonLine({ className }: { className: string }) {
         className,
       ].join(" ")}
     />
+  )
+}
+
+function RevenueDashboardSkeleton() {
+  return (
+    <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
+      <div className="bg-surface-container-low border border-outline-variant/50 rounded-xl p-1 shadow-2xl relative scanline-effect backdrop-blur-md">
+        <div className="bg-surface-container-highest rounded-t-lg flex items-center justify-between gap-4 p-3 border-b border-outline-variant/50">
+          <div className="flex items-center gap-3">
+            <span className="h-2.5 w-2.5 rounded-full bg-secondary-container animate-pulse" />
+            <span className="font-label-caps text-[10px] text-secondary-container tracking-widest uppercase">
+              Protocol Revenue Data
+            </span>
+          </div>
+          <span className="font-data-md text-[10px] sm:text-xs text-on-surface-variant tracking-widest whitespace-nowrap">
+            OVL // EARNINGS_DASHBOARD
+          </span>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 rounded-b-lg bg-surface-container-low p-5 sm:p-8 lg:p-10">
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 gap-8 md:gap-12">
+              <div className="min-w-0">
+                <span className="font-label-caps text-[10px] text-on-surface-variant block mb-3 tracking-widest uppercase">
+                  30D Protocol Fees
+                </span>
+                <SkeletonLine className="h-12 sm:h-14 lg:h-16 w-full max-w-md" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-surface-container-lowest border border-outline-variant/50 p-5 sm:p-6">
+            <span className="font-label-caps text-[10px] text-on-surface-variant block mb-6 border-b border-outline-variant/50 pb-3 tracking-widest uppercase">
+              30D Fees By Market
+            </span>
+            <div className="space-y-4">
+              {Array.from({ length: MARKET_FEE_ROW_LIMIT }).map((_, item) => (
+                <div className="space-y-2" key={item}>
+                  <div className="flex justify-between items-center gap-4">
+                    <SkeletonLine className="h-4 w-28" />
+                    <SkeletonLine className="h-4 w-20" />
+                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <SkeletonLine className="h-3 w-24" />
+                    <SkeletonLine className="h-3 w-16" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+async function RevenueDashboardPanel() {
+  let dashboardData: Awaited<ReturnType<typeof getMarketFeeRows>>
+
+  try {
+    dashboardData = await getMarketFeeRows()
+  } catch {
+    return <RevenueDashboardSkeleton />
+  }
+
+  return (
+    <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
+      <div className="bg-surface-container-low border border-outline-variant/50 rounded-xl p-1 shadow-2xl relative scanline-effect backdrop-blur-md">
+        <div className="bg-surface-container-highest rounded-t-lg flex items-center justify-between gap-4 p-3 border-b border-outline-variant/50">
+          <div className="flex items-center gap-3">
+            <span className="h-2.5 w-2.5 rounded-full bg-secondary-container animate-pulse" />
+            <span className="font-label-caps text-[10px] text-secondary-container tracking-widest uppercase">
+              Protocol Revenue Data
+            </span>
+          </div>
+          <span className="font-data-md text-[10px] sm:text-xs text-on-surface-variant tracking-widest whitespace-nowrap">
+            OVL // EARNINGS_DASHBOARD
+          </span>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 rounded-b-lg bg-surface-container-low p-5 sm:p-8 lg:p-10">
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 gap-8 md:gap-12">
+              <div className="min-w-0">
+                <span className="font-label-caps text-[10px] text-on-surface-variant block mb-3 tracking-widest uppercase">
+                  30D Protocol Fees
+                </span>
+                <span className="block break-words font-data-lg text-4xl sm:text-5xl lg:text-6xl text-primary leading-tight">
+                  {formatUsdAmount(dashboardData.totalFeesUsd, {
+                    compact: true,
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-surface-container-lowest border border-outline-variant/50 p-5 sm:p-6">
+            <span className="font-label-caps text-[10px] text-on-surface-variant block mb-6 border-b border-outline-variant/50 pb-3 tracking-widest uppercase">
+              30D Fees By Market
+            </span>
+            <div className="max-h-[440px] space-y-4 overflow-y-auto pr-1 font-data-md text-sm">
+              {dashboardData.rows.map((market) => (
+                <div className="space-y-1" key={market.ticker}>
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="text-on-background">{market.market}</span>
+                    <span className="text-primary text-right whitespace-nowrap">
+                      {formatUsdAmount(market.feesUsd)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center gap-4 font-label-caps text-[10px] uppercase tracking-widest">
+                    <span className="text-on-surface-variant">
+                      {market.ticker}
+                    </span>
+                    <span className="text-on-surface-variant text-right whitespace-nowrap">
+                      {formatCompactNumber(market.feesOvl)} OVL
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-3 border-t border-outline-variant/50 flex justify-between items-center gap-4">
+                <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
+                  Synced {formatUtcTime(dashboardData.lastSyncedAt)}
+                </span>
+                <a
+                  className="font-label-caps text-[10px] text-primary uppercase tracking-widest hover:text-primary-container transition-colors"
+                  href={LINKS.markets}
+                  {...externalLinkProps}
+                >
+                  All Markets
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -444,78 +1057,9 @@ export default function EcosystemPage() {
           </div>
         </section>
 
-        <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
-          <div className="bg-surface-container-low border border-outline-variant/50 rounded-xl p-1 shadow-2xl relative scanline-effect backdrop-blur-md">
-            <div className="bg-surface-container-highest rounded-t-lg flex items-center justify-between gap-4 p-3 border-b border-outline-variant/50">
-              <div className="flex items-center gap-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-secondary-container animate-pulse" />
-                <span className="font-label-caps text-[10px] text-secondary-container tracking-widest uppercase">
-                  Real-Time Protocol Revenue
-                </span>
-              </div>
-              <span className="font-data-md text-[10px] sm:text-xs text-on-surface-variant tracking-widest whitespace-nowrap">
-                OVL // EARNINGS_DASHBOARD
-              </span>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12 rounded-b-lg bg-surface-container-low p-5 sm:p-8 lg:p-10">
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_220px] gap-8 md:gap-12">
-                  <div className="min-w-0">
-                    <span className="font-label-caps text-[10px] text-on-surface-variant block mb-3 tracking-widest uppercase">
-                      Total Protocol Fees
-                    </span>
-                    <span className="block break-words font-data-lg text-4xl sm:text-5xl lg:text-6xl text-primary leading-tight">
-                      $4,829,104.22
-                    </span>
-                  </div>
-                  <div className="flex flex-col justify-end">
-                    <span className="font-label-caps text-[10px] text-on-surface-variant block mb-3 tracking-widest uppercase">
-                      24H Fee Growth
-                    </span>
-                    <span className="font-data-lg text-2xl text-secondary-container flex items-center gap-2">
-                      <span className="material-symbols-outlined text-2xl">
-                        trending_up
-                      </span>
-                      +12.4%
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-surface-container-lowest border border-outline-variant/50 p-5 sm:p-6">
-                <span className="font-label-caps text-[10px] text-on-surface-variant block mb-6 border-b border-outline-variant/50 pb-3 tracking-widest uppercase">
-                  Fees By Market
-                </span>
-                <div className="space-y-4 font-data-md text-sm">
-                  {marketFees.map((market) => (
-                    <div
-                      className={[
-                        "flex justify-between items-center gap-4",
-                        market.muted ? "opacity-60" : "",
-                      ].join(" ")}
-                      key={market.market}
-                    >
-                      <span className="text-on-background">{market.market}</span>
-                      <span className="text-primary">{market.fees}</span>
-                    </div>
-                  ))}
-                  <div className="pt-3 border-t border-outline-variant/50 flex justify-between items-center gap-4">
-                    <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
-                      Refreshing in 4s
-                    </span>
-                    <a
-                      className="font-label-caps text-[10px] text-primary uppercase tracking-widest hover:text-primary-container transition-colors"
-                      href={LINKS.markets}
-                      {...externalLinkProps}
-                    >
-                      All Markets
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <Suspense fallback={<RevenueDashboardSkeleton />}>
+          <RevenueDashboardPanel />
+        </Suspense>
 
         <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">

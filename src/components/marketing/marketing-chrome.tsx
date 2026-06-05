@@ -85,12 +85,12 @@ function MarketingNavLink({
   activePage?: ActiveMarketingPage
   item: MarketingLink
 }) {
-  const isActive = item.activePage === activePage
+  const isActive = item.activePage !== undefined && item.activePage === activePage
   const className = [
-    "border-b pb-1 font-label-caps text-[0.78rem] font-medium leading-none tracking-[0.1em] transition-colors duration-200 whitespace-nowrap",
+    "pb-1 font-label-caps text-[0.78rem] font-medium leading-none tracking-[0.1em] transition-colors duration-200 whitespace-nowrap no-underline hover:no-underline",
     isActive
-      ? "border-primary text-primary"
-      : "border-transparent text-on-surface-variant/95 hover:text-primary",
+      ? "border-b border-primary text-primary"
+      : "border-b-0 text-on-surface-variant/95 hover:text-primary",
   ].join(" ")
 
   if (item.external) {
@@ -110,7 +110,7 @@ function MarketingNavLink({
 
 function MarketingFooterLink({ item }: { item: MarketingLink }) {
   const className =
-    "font-label-caps text-[11px] text-on-surface-variant hover:text-primary transition-colors duration-300 uppercase tracking-wider"
+    "font-label-caps text-[11px] text-on-surface-variant hover:text-primary transition-colors duration-300 uppercase tracking-wider no-underline hover:no-underline"
 
   if (item.external) {
     return (
@@ -136,7 +136,7 @@ export function MarketingNav({
     <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between gap-4 px-5 sm:px-6 py-4 bg-background/90 backdrop-blur-xl border-b border-outline-variant/30">
       <div className="flex items-center gap-6 lg:gap-8 min-w-0">
         <Link
-          className="font-headline-md text-2xl font-semibold tracking-[-0.03em] text-primary"
+          className="font-headline-md text-2xl font-semibold tracking-[-0.03em] text-primary no-underline hover:no-underline"
           href={LINKS.home}
         >
           OVERLAY
@@ -153,7 +153,7 @@ export function MarketingNav({
       </div>
       <div className="flex items-center gap-6">
         <a
-          className="inline-flex shrink-0 items-center justify-center bg-primary text-on-primary font-label-caps text-label-caps font-medium px-4 sm:px-5 py-2.5 rounded uppercase tracking-[0.11em] hover:bg-primary-container transition-colors duration-200"
+          className="inline-flex shrink-0 items-center justify-center bg-primary text-on-primary font-label-caps text-label-caps font-medium px-4 sm:px-5 py-2.5 rounded uppercase tracking-[0.11em] hover:bg-primary-container transition-colors duration-200 no-underline hover:no-underline"
           href={LINKS.launchApp}
           {...externalLinkProps}
         >
