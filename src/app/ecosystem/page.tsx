@@ -52,6 +52,9 @@ const roiStats = [
   { volume: "$100M Volume", roi: "300% monthly ROI" },
 ]
 
+const showProtocolRevenueData = false
+const showMonthlyRoiReach = true
+
 const DATA_API_BASE_URL = "https://api.overlay.market/data/api"
 const AGGREGATOR_MARKETS_CHAIN_ID = "56"
 const BSC_SUBGRAPH_URL =
@@ -994,6 +997,47 @@ async function ActivePoolsSection() {
   )
 }
 
+function MonthlyRoiReachSection() {
+  return (
+    <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)] border border-outline-variant/50 rounded-xl overflow-hidden bg-surface-container-low shadow-2xl">
+        <div className="p-6 md:p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-outline-variant/50">
+          <h2 className="font-headline-md text-2xl md:text-3xl text-secondary mb-3">
+            Monthly ROI reach
+          </h2>
+          <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest leading-relaxed">
+            Based on a $10K pool, 0.1% trading fee, and 30% contributor share.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3">
+          {roiStats.map((stat, index) => (
+            <div
+              className={[
+                "p-6 md:p-8 flex flex-col gap-2",
+                index < roiStats.length - 1
+                  ? "border-b md:border-b-0 md:border-r border-outline-variant/50"
+                  : "",
+              ].join(" ")}
+              key={stat.volume}
+            >
+              <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
+                {stat.volume}
+              </span>
+              <span className="font-data-lg text-2xl text-secondary-container">
+                {stat.roi}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="mt-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest leading-relaxed">
+        Volume is the total trade size counted at both entry and unwind over the
+        month.
+      </p>
+    </section>
+  )
+}
+
 export default function EcosystemPage() {
   return (
     <>
@@ -1057,9 +1101,13 @@ export default function EcosystemPage() {
           </div>
         </section>
 
-        <Suspense fallback={<RevenueDashboardSkeleton />}>
-          <RevenueDashboardPanel />
-        </Suspense>
+        {showProtocolRevenueData ? (
+          <Suspense fallback={<RevenueDashboardSkeleton />}>
+            <RevenueDashboardPanel />
+          </Suspense>
+        ) : showMonthlyRoiReach ? (
+          <MonthlyRoiReachSection />
+        ) : null}
 
         <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
@@ -1080,44 +1128,6 @@ export default function EcosystemPage() {
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,2fr)] border border-outline-variant/50 rounded-xl overflow-hidden bg-surface-container-low shadow-2xl">
-            <div className="p-6 md:p-8 lg:p-10 border-b lg:border-b-0 lg:border-r border-outline-variant/50">
-              <h2 className="font-headline-md text-2xl md:text-3xl text-secondary mb-3">
-                Monthly ROI reach
-              </h2>
-              <p className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest leading-relaxed">
-                Based on a $10K pool, 0.1% trading fee, and 30% contributor
-                share.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3">
-              {roiStats.map((stat, index) => (
-                <div
-                  className={[
-                    "p-6 md:p-8 flex flex-col gap-2",
-                    index < roiStats.length - 1
-                      ? "border-b md:border-b-0 md:border-r border-outline-variant/50"
-                      : "",
-                  ].join(" ")}
-                  key={stat.volume}
-                >
-                  <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
-                    {stat.volume}
-                  </span>
-                  <span className="font-data-lg text-2xl text-secondary-container">
-                    {stat.roi}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p className="mt-4 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest leading-relaxed">
-            Volume is the total trade size counted at both entry and unwind over
-            the month.
-          </p>
         </section>
 
         <section className="max-w-container-max mx-auto px-6 py-12 md:py-16">
