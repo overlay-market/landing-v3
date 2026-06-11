@@ -9,6 +9,7 @@ export const LINKS = {
   twitter: "https://twitter.com/OverlayProtocol",
   launchApp: "https://app.overlay.market",
   telegram: "https://t.me/overlay_protocol",
+  listing: "/listing",
   listingApplication: "https://forms.gle/aWcpf49GaoVPMomg7",
   markets: "https://app.overlay.market",
   communityPools: "https://app.overlay.market/community-pools",
@@ -49,7 +50,7 @@ export const auditors = [
   },
 ] as const
 
-type ActiveMarketingPage = "ecosystem"
+type ActiveMarketingPage = "ecosystem" | "listing"
 
 type MarketingLink = {
   label: string
@@ -63,7 +64,7 @@ const navItems: MarketingLink[] = [
   { label: "Community Pools", href: LINKS.communityPools, external: true },
   { label: "Ecosystem", href: LINKS.ecosystem, activePage: "ecosystem" },
   { label: "Docs", href: LINKS.documentation, external: true },
-  { label: "Listing Application", href: LINKS.listingApplication, external: true },
+  { label: "Listing Application", href: LINKS.listing, activePage: "listing" },
 ]
 
 const footerLinks: MarketingLink[] = [
@@ -71,7 +72,7 @@ const footerLinks: MarketingLink[] = [
   { label: "Community Pools", href: LINKS.communityPools, external: true },
   { label: "Ecosystem", href: LINKS.ecosystem },
   { label: "Docs", href: LINKS.documentation, external: true },
-  { label: "Listing Application", href: LINKS.listingApplication, external: true },
+  { label: "Listing Application", href: LINKS.listing },
   { label: "Whitepaper", href: LINKS.whitepaperV1, external: true },
   { label: "Twitter", href: LINKS.twitter, external: true },
   { label: "Telegram", href: LINKS.telegram, external: true },

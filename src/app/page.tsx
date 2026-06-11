@@ -35,8 +35,7 @@ export default function Home() {
                 </a>
                 <a
                   className="inline-flex items-center justify-center bg-transparent border border-primary/40 text-primary font-label-caps text-label-caps font-medium px-6 py-3.5 rounded uppercase tracking-[0.11em] hover:bg-primary/10 transition-all duration-200 shadow-[0_0_15px_rgba(0,240,255,0.1)] hover:shadow-[0_0_20px_rgba(0,240,255,0.2)]"
-                  href={LINKS.listingApplication}
-                  {...externalLinkProps}
+                  href={LINKS.listing}
                 >
                   Request a Market
                 </a>
@@ -205,8 +204,7 @@ export default function Home() {
                 </p>
                 <a
                   className="flex items-center gap-3 text-primary font-label-caps text-[11px] uppercase tracking-widest hover:gap-5 transition-all duration-300"
-                  href={LINKS.listingApplication}
-                  {...externalLinkProps}
+                  href={LINKS.listing}
                 >
                   <span>Initiate Community Request</span>
                   <span className="material-symbols-outlined text-sm">
@@ -262,8 +260,7 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row lg:flex-col gap-4 w-full lg:w-auto shrink-0">
                 <a
                   className="inline-flex w-full items-center justify-center bg-primary text-on-primary font-label-caps text-xs px-10 py-4 rounded uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-[0_0_30px_rgba(0,240,255,0.2)] text-center"
-                  href={LINKS.listingApplication}
-                  {...externalLinkProps}
+                  href={LINKS.listing}
                 >
                   Request a Market
                 </a>
