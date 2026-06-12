@@ -97,12 +97,36 @@ const liquidityColumns = [
 ]
 
 const liveMarkets = [
-  { ticker: "$DASH", detail: "Live on Overlay" },
-  { ticker: "$CHZ", detail: "Live on Overlay" },
-  { ticker: "$FRAX", detail: "Live on Overlay" },
-  { ticker: "$PLUME", detail: "On-chain live" },
-  { ticker: "$AERO", detail: "On-chain live" },
-  { ticker: "$VVV", detail: "On-chain live" },
+  {
+    detail: "Live on Overlay",
+    ticker: "$DASH",
+    tweetHref: "https://x.com/dashpay/status/2031750873676705884",
+  },
+  {
+    detail: "Live on Overlay",
+    ticker: "$CHZ",
+    tweetHref: "https://x.com/Chiliz/status/2045049440939991359",
+  },
+  {
+    detail: "Live on Overlay",
+    ticker: "$MOCA",
+    tweetHref: "https://x.com/OverlayProtocol/status/2036835562448117918",
+  },
+  {
+    detail: "On-chain live",
+    ticker: "$PLUME",
+    tweetHref: "https://x.com/OverlayProtocol/status/2037197958035427520",
+  },
+  {
+    detail: "On-chain live",
+    ticker: "$AERO",
+    tweetHref: "https://x.com/OverlayProtocol/status/2032157908105076957",
+  },
+  {
+    detail: "On-chain live",
+    ticker: "$VVV",
+    tweetHref: "https://x.com/OverlayProtocol/status/2040127223718633568",
+  },
 ]
 
 const journeySteps = [
@@ -572,9 +596,16 @@ export default async function ListingPage({ searchParams }: ListingPageProps) {
                   <span className="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
                     {market.detail}
                   </span>
-                  <span className="font-data-md text-xs text-primary uppercase">
-                    On-chain
-                  </span>
+                  <a
+                    className="inline-flex items-center gap-1 font-data-md text-xs text-primary uppercase hover:text-primary-container transition-colors"
+                    href={market.tweetHref}
+                    {...externalLinkProps}
+                  >
+                    View Tweet
+                    <span className="material-symbols-outlined text-xs">
+                      arrow_outward
+                    </span>
+                  </a>
                 </div>
               </div>
             ))}
@@ -655,13 +686,18 @@ export default async function ListingPage({ searchParams }: ListingPageProps) {
                 />
                 <div className="space-y-6">
                   {[
-                    ["mail", "Direct contact", "listing@overlay.market"],
-                    [
-                      "groups",
-                      "Dedicated support",
-                      "Each project gets guidance through review and launch.",
-                    ],
-                  ].map(([icon, title, text]) => (
+                    {
+                      href: "mailto:listings@overlay.market",
+                      icon: "mail",
+                      text: "listings@overlay.market",
+                      title: "Direct contact",
+                    },
+                    {
+                      icon: "groups",
+                      text: "Each project gets guidance through review and launch.",
+                      title: "Dedicated support",
+                    },
+                  ].map(({ href, icon, text, title }) => (
                     <div className="flex gap-4" key={title}>
                       <span className="material-symbols-outlined text-primary">
                         {icon}
@@ -670,9 +706,18 @@ export default async function ListingPage({ searchParams }: ListingPageProps) {
                         <p className="font-headline-md text-lg text-secondary">
                           {title}
                         </p>
-                        <p className="font-body-md text-base text-on-surface-variant">
-                          {text}
-                        </p>
+                        {href ? (
+                          <a
+                            className="font-body-md text-base text-on-surface-variant underline-offset-4 hover:text-primary hover:underline"
+                            href={href}
+                          >
+                            {text}
+                          </a>
+                        ) : (
+                          <p className="font-body-md text-base text-on-surface-variant">
+                            {text}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}
