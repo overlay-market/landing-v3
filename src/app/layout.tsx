@@ -37,20 +37,20 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
+        <Script id="overlay-ga-optout" strategy="beforeInteractive">
+          {`
+            var gaProperty = '${GA_MEASUREMENT_ID}';
+            var disableStr = 'ga-disable-' + gaProperty;
+            if (document.cookie.indexOf(disableStr + '=true') > -1) {
+              window[disableStr] = true;
+            }
+          `}
+        </Script>
       </head>
       <body className="bg-background text-on-background font-body-md text-body-md antialiased overflow-x-hidden selection:bg-primary selection:text-on-primary">
         {children}
+        <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
       </body>
-      <Script id="overlay-ga-optout" strategy="beforeInteractive">
-        {`
-          var gaProperty = '${GA_MEASUREMENT_ID}';
-          var disableStr = 'ga-disable-' + gaProperty;
-          if (document.cookie.indexOf(disableStr + '=true') > -1) {
-            window[disableStr] = true;
-          }
-        `}
-      </Script>
-      <GoogleAnalytics gaId={GA_MEASUREMENT_ID} />
     </html>
   )
 }
