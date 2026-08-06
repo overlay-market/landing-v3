@@ -61,7 +61,6 @@ type MarketingLink = {
 
 const navItems: MarketingLink[] = [
   { label: "Markets", href: LINKS.markets, external: true },
-  { label: "Community Pools", href: LINKS.communityPools, external: true },
   { label: "Ecosystem", href: LINKS.ecosystem, activePage: "ecosystem" },
   { label: "Docs", href: LINKS.documentation, external: true },
   { label: "Listing Application", href: LINKS.listing, activePage: "listing" },
@@ -69,7 +68,6 @@ const navItems: MarketingLink[] = [
 
 const footerLinks: MarketingLink[] = [
   { label: "Markets", href: LINKS.markets, external: true },
-  { label: "Community Pools", href: LINKS.communityPools, external: true },
   { label: "Ecosystem", href: LINKS.ecosystem },
   { label: "Docs", href: LINKS.documentation, external: true },
   { label: "Listing Application", href: LINKS.listing },
