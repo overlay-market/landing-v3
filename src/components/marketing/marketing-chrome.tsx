@@ -64,6 +64,7 @@ const navItems: MarketingLink[] = [
   { label: "Ecosystem", href: LINKS.ecosystem, activePage: "ecosystem" },
   { label: "Docs", href: LINKS.documentation, external: true },
   { label: "Listing Application", href: LINKS.listing, activePage: "listing" },
+  { label: "Whitepaper", href: LINKS.whitepaperV1, external: true },
 ]
 
 const footerLinks: MarketingLink[] = [
