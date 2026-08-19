@@ -271,6 +271,13 @@ export default function Home() {
                 >
                   View Integration Docs
                 </a>
+                <a
+                  className="inline-flex w-full items-center justify-center border border-outline-variant text-on-surface-variant font-label-caps text-xs px-10 py-4 rounded uppercase tracking-widest hover:bg-surface-container-high transition-colors text-center"
+                  href={LINKS.whitepaperV1}
+                  {...externalLinkProps}
+                >
+                  Whitepaper
+                </a>
               </div>
             </div>
             <div className="absolute top-0 right-0 hidden sm:block p-6">
