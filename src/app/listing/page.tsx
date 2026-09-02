@@ -175,52 +175,8 @@ const faqItems = [
   },
 ]
 
-const formFields = [
-  { label: "Personal name", placeholder: "John Doe", type: "text" },
-  { label: "Contact email", placeholder: "john@project.com", type: "email" },
-  { label: "Project name", placeholder: "Nebula Protocol", type: "text" },
-  { label: "Project website", placeholder: "https://", type: "url" },
-]
-
-const listingStatusMessages = {
-  config: {
-    description:
-      "Email delivery is not configured yet. Please set the listing email environment variables and try again.",
-    title: "Email delivery is not configured",
-    tone: "error",
-  },
-  email_failed: {
-    description:
-      "The request was captured by the site, but the email provider rejected the send. Please try again shortly.",
-    title: "Email delivery failed",
-    tone: "error",
-  },
-  invalid: {
-    description:
-      "Please provide a valid contact email and confirm consent before submitting.",
-    title: "Check the form details",
-    tone: "error",
-  },
-  missing: {
-    description: "Please complete all required fields before submitting.",
-    title: "Missing required details",
-    tone: "error",
-  },
-  sent: {
-    description:
-      "Thanks. The Overlay team has received your listing request and will review the project details.",
-    title: "Listing request received",
-    tone: "success",
-  },
-} as const
-
-type ListingSearchParams = {
-  listing?: string | string[]
-}
-
-type ListingPageProps = {
-  searchParams?: Promise<ListingSearchParams>
-}
+const LISTING_FORM_EMBED_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdQr6GX8a5khZpxcB7Z6JDEvx1FsPoKQhF78D1qaVV6BslUig/viewform?embedded=true"
 
 function SectionHeading({
   eyebrow,
@@ -307,16 +263,7 @@ function ListingTerminalPanel() {
   )
 }
 
-export default async function ListingPage({ searchParams }: ListingPageProps) {
-  const params = await searchParams
-  const listingStatus = Array.isArray(params?.listing)
-    ? params?.listing[0]
-    : params?.listing
-  const listingMessage =
-    listingStatus &&
-    listingStatus in listingStatusMessages &&
-    listingStatusMessages[listingStatus as keyof typeof listingStatusMessages]
-
+export default function ListingPage() {
   return (
     <>
       <MarketingNav activePage="listing" />
@@ -723,101 +670,15 @@ export default async function ListingPage({ searchParams }: ListingPageProps) {
                   ))}
                 </div>
               </div>
-              <form
-                action="/api/listing-application"
-                className="bg-surface-container-low border border-outline-variant/50 p-6 md:p-8 rounded-xl shadow-2xl space-y-6"
-                method="post"
-              >
-                <input
-                  aria-hidden="true"
-                  autoComplete="off"
-                  className="hidden"
-                  name="company"
-                  tabIndex={-1}
-                  type="text"
-                />
-                {listingMessage ? (
-                  <div
-                    className={[
-                      "border p-4",
-                      listingMessage.tone === "success"
-                        ? "border-secondary-container/40 bg-secondary-container/10"
-                        : "border-error/40 bg-error/10",
-                    ].join(" ")}
-                  >
-                    <p
-                      className={[
-                        "font-headline-md text-lg",
-                        listingMessage.tone === "success"
-                          ? "text-secondary-container"
-                          : "text-error",
-                      ].join(" ")}
-                    >
-                      {listingMessage.title}
-                    </p>
-                    <p className="mt-2 font-body-md text-sm text-on-surface-variant leading-relaxed">
-                      {listingMessage.description}
-                    </p>
-                  </div>
-                ) : null}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {formFields.map((field) => (
-                    <label className="block" key={field.label}>
-                      <span className="block font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-2">
-                        {field.label}
-                      </span>
-                      <input
-                        className="w-full bg-surface-container-lowest border border-outline-variant/60 p-3 rounded text-on-surface outline-none transition-colors focus:border-primary"
-                        name={field.label.toLowerCase().replaceAll(" ", "_")}
-                        placeholder={field.placeholder}
-                        required
-                        type={field.type}
-                      />
-                    </label>
-                  ))}
-                </div>
-                <label className="block">
-                  <span className="block font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-2">
-                    Chain
-                  </span>
-                  <input
-                    className="w-full bg-surface-container-lowest border border-outline-variant/60 p-3 rounded text-on-surface outline-none transition-colors focus:border-primary"
-                    name="chain"
-                    placeholder="Ethereum, Base, Solana, BSC..."
-                    required
-                    type="text"
-                  />
-                </label>
-                <label className="block">
-                  <span className="block font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest mb-2">
-                    Tell us about your asset
-                  </span>
-                  <textarea
-                    className="w-full min-h-28 bg-surface-container-lowest border border-outline-variant/60 p-3 rounded text-on-surface outline-none transition-colors focus:border-primary"
-                    name="asset_description"
-                    placeholder="Brief description of the asset and intended data feed..."
-                    required
-                  />
-                </label>
-                <label className="flex items-start gap-3">
-                  <input
-                    className="mt-1 rounded border-outline-variant bg-surface-container-lowest text-primary"
-                    name="consent"
-                    required
-                    type="checkbox"
-                  />
-                  <span className="font-body-md text-xs text-on-surface-variant leading-relaxed">
-                    I give my consent to the processing of my data for listing
-                    assessment.
-                  </span>
-                </label>
-                <button
-                  className="w-full bg-primary text-on-primary py-4 px-5 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary-container active:scale-[0.98] transition-all"
-                  type="submit"
+              <div className="bg-surface-container-low border border-outline-variant/50 rounded-xl shadow-2xl overflow-hidden">
+                <iframe
+                  className="w-full min-h-[1400px] bg-white"
+                  src={LISTING_FORM_EMBED_URL}
+                  title="Overlay Listing Application"
                 >
-                  Submit Listing Request
-                </button>
-              </form>
+                  Loading…
+                </iframe>
+              </div>
             </div>
           </div>
         </section>
