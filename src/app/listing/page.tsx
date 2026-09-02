@@ -175,8 +175,8 @@ const faqItems = [
   },
 ]
 
-const LISTING_FORM_EMBED_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSdQr6GX8a5khZpxcB7Z6JDEvx1FsPoKQhF78D1qaVV6BslUig/viewform?embedded=true"
+const LISTING_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdQr6GX8a5khZpxcB7Z6JDEvx1FsPoKQhF78D1qaVV6BslUig/viewform"
 
 function SectionHeading({
   eyebrow,
@@ -670,14 +670,30 @@ export default function ListingPage() {
                   ))}
                 </div>
               </div>
-              <div className="bg-surface-container-low border border-outline-variant/50 rounded-xl shadow-2xl overflow-hidden">
-                <iframe
-                  className="w-full min-h-[1400px] bg-white"
-                  src={LISTING_FORM_EMBED_URL}
-                  title="Overlay Listing Application"
+              <div className="bg-surface-container-low border border-outline-variant/50 rounded-xl shadow-2xl p-8 md:p-12 flex flex-col items-center gap-6 text-center">
+                <span className="material-symbols-outlined text-4xl text-primary">
+                  rocket_launch
+                </span>
+                <div className="space-y-3">
+                  <h3 className="font-headline-md text-2xl text-secondary">
+                    Ready to list?
+                  </h3>
+                  <p className="font-body-md text-base text-on-surface-variant leading-relaxed max-w-sm">
+                    Fill out the listing application with your token and
+                    data-feed details. Our team reviews every submission and
+                    follows up within 1-3 weeks.
+                  </p>
+                </div>
+                <a
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 bg-primary text-on-primary font-label-caps text-label-caps px-8 py-4 rounded uppercase tracking-widest hover:bg-primary-container active:scale-[0.98] transition-all"
+                  href={LISTING_FORM_URL}
+                  {...externalLinkProps}
                 >
-                  Loading…
-                </iframe>
+                  List Your Perps Market
+                  <span className="material-symbols-outlined text-[18px]">
+                    arrow_outward
+                  </span>
+                </a>
               </div>
             </div>
           </div>
