@@ -681,7 +681,7 @@ export default function ListingPage() {
                   <p className="font-body-md text-base text-on-surface-variant leading-relaxed max-w-sm">
                     Fill out the listing application with your token and
                     data-feed details. Our team reviews every submission and
-                    follows up within 1-3 weeks.
+                    follows up within 1 week.
                   </p>
                 </div>
                 <a
